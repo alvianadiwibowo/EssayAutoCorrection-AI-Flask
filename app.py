@@ -10,7 +10,7 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = 'rahasia_negara_super_aman'
 
-# --- KONFIGURASI FOLDER UPLOAD PDF ---
+# KONFIGURASI FOLDER 
 UPLOAD_FOLDER = os.path.join('static', 'uploads', 'materi')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -19,7 +19,7 @@ ALLOWED_EXTENSIONS = {'pdf'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# --- SETUP AI GEMINI ---
+# SETUP AI GEMINI
 keys = [os.getenv("API_KEY_ALVIAN"), os.getenv("API_KEY_BILA"), os.getenv("API_KEY_MASPITO"), os.getenv("API_KEY_FAISAL")]
 key_index = 0
 
@@ -46,7 +46,7 @@ def koreksi_ai(kunci_jawaban, jawaban_siswa):
     clean_text = response.text.replace("```json", "").replace("```", "").strip()
     return json.loads(clean_text)
 
-# ================= ROUTING UTAMA =================
+# ROUTING UTAMA
 @app.route('/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -67,7 +67,7 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ================= AREA GURU =================
+# RANAH GURU
 @app.route('/guru_hub')
 def guru_hub():
     if session.get('role') != 'guru': return redirect(url_for('login'))
@@ -90,7 +90,7 @@ def guru_materi():
             
             conn = sqlite3.connect('sekolah.db')
             cursor = conn.cursor()
-            # NAMBAHIN session['username'] BIAR KETAHUAN SIAPA YANG UPLOAD
+            # UPDATE V 2.0, NAMBAHIN session['username'] BIAR KETAHUAN SIAPA YANG UPLOAD
             cursor.execute("INSERT INTO materi (judul, nama_file, mata_pelajaran, kelas_target, guru_username) VALUES (?, ?, ?, ?, ?)", 
                            (judul, nama_file_baru, mapel, kelas_target, session['username']))
             conn.commit()
@@ -98,7 +98,7 @@ def guru_materi():
             
     conn = sqlite3.connect('sekolah.db')
     cursor = conn.cursor()
-    # FILTER HISTORY: CUMA TAMPILIN MATERI MILIK GURU YANG LAGI LOGIN
+    # LOGIC, MWNAMPILKAN MATERI BAGI GURU YANG LOGIN KE AKUN ITU SENDIRI
     cursor.execute("SELECT mata_pelajaran, judul, kelas_target, nama_file FROM materi WHERE guru_username=? ORDER BY id DESC", (session['username'],))
     materi_list = cursor.fetchall()
     conn.close()
@@ -114,7 +114,7 @@ def guru_ujian():
         mapel, jam, jam_selesai = request.form['mapel'], request.form['jam_mulai'], request.form['jam_selesai']
         pertanyaan_list, kunci_list = request.form.getlist('soal[]'), request.form.getlist('kunci[]')
         
-        # Tarik data PG dari temen lu
+        # PG
         tipe_list = request.form.getlist('tipe_soal[]')
         opsi_a_list, opsi_b_list = request.form.getlist('opsi_a[]'), request.form.getlist('opsi_b[]')
         opsi_c_list, opsi_d_list = request.form.getlist('opsi_c[]'), request.form.getlist('opsi_d[]')
@@ -135,7 +135,7 @@ def guru_ujian():
 
     conn = sqlite3.connect('sekolah.db')
     cursor = conn.cursor()
-    # Ambil Data Jawaban (DIFILTER KHUSUS GURU YANG LOGIN)
+    # Ambil Data Jawaban Berdasarkan Token Guru Itu Sendiri
     guru_aktif = session['username']
 
     cursor.execute("""
@@ -161,7 +161,7 @@ def guru_ujian():
 
 @app.route('/koreksi_semua/<token>/<username>')
 def koreksi_semua(token, username):
-    # Sama seperti V2.0, kode dipersingkat demi menghemat space chat
+    # V2.0, kode dipersingkat biar ringkas
     conn = sqlite3.connect('sekolah.db')
     cursor = conn.cursor()
     cursor.execute("SELECT j.id, j.jawaban, s.kunci_jawaban FROM jawaban_siswa j JOIN soal_ujian s ON j.token_ujian = s.token_ujian AND j.nomor_soal = s.nomor_soal WHERE j.token_ujian=? AND j.username=? AND j.status='Belum Dikoreksi'", (token, username))
@@ -175,7 +175,7 @@ def koreksi_semua(token, username):
     conn.close()
     return redirect(url_for('guru_ujian'))
 
-# ================= AREA MURID =================
+# RANAH MURID
 @app.route('/murid_hub')
 def murid_hub():
     if 'role' not in session or session['role'] != 'murid': return redirect(url_for('login'))
@@ -188,7 +188,7 @@ def murid_hub():
     
     return render_template('murid_hub.html', daftar_matkul=matkul_list)
 
-# RUTE BARU: Saat murid klik salah satu Kotak Matkul
+# RUTE: Saat murid klik salah satu Kotak Matkul
 @app.route('/murid_matkul/<mapel>')
 def murid_matkul(mapel):
     if 'role' not in session or session['role'] != 'murid': return redirect(url_for('login'))
@@ -242,7 +242,7 @@ def murid_ujian():
             conn = sqlite3.connect('sekolah.db')
             cursor = conn.cursor()
             
-            # Ambil kunci buat auto-koreksi PG
+            # Ambil kunci jawaban buat koreksi PG
             cursor.execute("SELECT nomor_soal, tipe_soal, kunci_jawaban FROM soal_ujian WHERE token_ujian=?", (token_ujian,))
             kamus_soal = {str(row[0]): {"tipe": row[1], "kunci": row[2]} for row in cursor.fetchall()}
             
