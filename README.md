@@ -64,8 +64,8 @@ Setelah seluruh konfigurasi selesai, nyalakan server lokal Flask dengan perintah
 python3 app.py
 ```
 Buka browser Anda lalu akses URL: http://127.0.0.1:5000
-🔑 Akun Uji Coba Default (Testing Accounts)
 
+🔑 Akun Uji Coba Default (Testing Accounts)
 Gunakan akun di bawah ini yang sudah terdaftar di database untuk mencoba sistem:
 - Akun Guru: Username: guru_bima | Password: 123
 - Akun Siswa (TKJ): Username: faisal1 | Password: 123 (Kelas: TKJ 1)
