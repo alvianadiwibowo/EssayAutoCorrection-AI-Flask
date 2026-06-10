@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <title>Materi {{ mapel }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="lms-layout">
+        <aside class="lms-sidebar">
+            <h3 class="text-center mb-4">🎓 LMS Global</h3>
+            <div class="sidebar-menu">
+                <a href="/murid_hub" class="nav-link active">📚 Dashboard</a>
+                <a href="/murid_ujian" class="nav-link">📝 Ruang Ujian</a>
+            </div>
+            <div style="margin-top: auto;">
+                <hr><a href="/logout" class="btn btn-outline-danger btn-block">🚪 Keluar</a>
+            </div>
+        </aside>
+
+        <main class="lms-content">
+            <h2 class="mb-4">Materi: {{ mapel }}</h2>
+            <div class="card table-responsive">
+                <table>
+                    <thead><tr><th>Judul Dokumen</th><th>Tanggal</th><th>Aksi</th></tr></thead>
+                    <tbody>
+                        {% for m in daftar_materi %}
+                        <tr>
+                            <td>📄 <strong>{{ m[0] }}</strong></td>
+                            <td>{{ m[3].split(' ')[0] }}</td>
+                            <td><a href="/download/{{ m[1] }}" class="btn btn-success btn-sm">Download PDF</a></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

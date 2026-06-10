@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <title>Ruang Ujian</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="lms-layout">
+        <aside class="lms-sidebar">
+            <h3 class="text-center mb-4">LMS Vatchoel</h3>
+            <div class="sidebar-menu">
+                <a href="/murid_hub" class="nav-link">Dashboard</a>
+                <a href="/murid_ujian" class="nav-link active">Ruang Ujian</a>
+            </div>
+            <div style="margin-top: auto;">
+                <hr><a href="/logout" class="btn btn-outline-danger btn-block">Keluar</a>
+            </div>
+        </aside>
+
+        <main class="lms-content">
+            {% if error %} <div class="alert alert-danger">{{ error }}</div> {% endif %}
+
+            {% if not daftar_soal %}
+            <div class="card" style="max-width: 500px; margin: 0 auto;">
+                <div class="card-body text-center">
+                    <h3 class="mb-4">Masukkan Token Ujian</h3>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="cek_token">
+                        <div class="form-group"><input type="text" class="form-control text-center" name="token" style="letter-spacing: 5px; font-size: 1.5rem;" required></div>
+                        <button type="submit" class="btn btn-success btn-block mt-4">Mulai Kerjakan</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if daftar_soal %}
+                {% if ujian_selesai %}
+                    <div class="alert alert-success"><h2>✅ Ujian Selesai! Terima kasih.</h2></div>
+                {% else %}
+                    <h3 class="mb-4 text-center">Ujian: {{ mapel }}</h3>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="submit_jawaban">
+                        <input type="hidden" name="token_aktif" value="{{ token }}">
+
+                        {% for s in daftar_soal %}
+                        <div class="card">
+                            <div class="card-header header-primary">Soal No. {{ s[2] }}</div>
+                            <div class="card-body">
+                                <p style="font-size: 1.2rem; margin-bottom: 20px;">{{ s[4] }}</p>
+                                {% if s[3] == 'pg' %}
+                                    <div class="form-group"><input type="radio" name="jawaban_{{ s[2] }}" value="A" required> A. {{ s[5] }}</div>
+                                    <div class="form-group"><input type="radio" name="jawaban_{{ s[2] }}" value="B" required> B. {{ s[6] }}</div>
+                                    <div class="form-group"><input type="radio" name="jawaban_{{ s[2] }}" value="C" required> C. {{ s[7] }}</div>
+                                    <div class="form-group"><input type="radio" name="jawaban_{{ s[2] }}" value="D" required> D. {{ s[8] }}</div>
+                                {% else %}
+                                    <div class="form-group">
+                                        <label class="form-label">Jawaban Anda:</label>
+                                        <textarea class="form-control" name="jawaban_{{ s[2] }}" rows="5" required></textarea>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary btn-block btn-lg mt-4">Kumpulkan Semua Jawaban</button>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </main>
+    </div>
+</body>
+</html>

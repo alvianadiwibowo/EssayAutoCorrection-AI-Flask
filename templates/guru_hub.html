@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <title>LMS Core - Panel Guru</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar nav-dark">
+        <div class="navbar-brand">LMS Core - Panel Guru</div>
+        <a href="/logout" class="btn btn-danger btn-sm">Keluar</a>
+    </nav>
+    <div class="container text-center mt-4">
+        <h2 class="mb-4">Selamat Datang, Bapak/Ibu {{ session['username'] }}!</h2>
+        <div class="grid-2 mt-4">
+            <div class="card">
+                <div class="card-header header-success">Kelola Materi Kuliah</div>
+                <div class="card-body">
+                    <p class="mb-4">Upload dan kelola modul PDF untuk siswa.</p>
+                    <a href="/guru_materi" class="btn btn-success btn-block">Masuk Pengelolaan Materi</a>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header header-primary">Evaluasi & Koreksi AI</div>
+                <div class="card-body">
+                    <p class="mb-4">Buat soal ujian dan pantau hasil koreksi otomatis.</p>
+                    <a href="/guru_ujian" class="btn btn-primary btn-block">Masuk Pembuatan Ujian</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

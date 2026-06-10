@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <title>Evaluasi AI - Guru</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand">Evaluasi & Koreksi AI</div>
+        <a href="/guru_hub" class="btn btn-outline btn-sm">Kembali ke Hub</a>
+    </nav>
+    <div class="container mt-4">
+        {% if token_baru %}
+        <div class="alert alert-success">✅ Ujian Dibuat! Token: <strong>{{ token_baru }}</strong></div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header header-primary">Racik Paket Ujian Kombinasi</div>
+            <div class="card-body">
+                <form method="POST" onsubmit="return validasiForm()">
+                    <input type="hidden" name="action" value="buat_ujian">
+                    <div class="grid-3 mb-4">
+                        <div class="form-group"><label class="form-label">Mata Pelajaran</label><input type="text" class="form-control" name="mapel" required></div>
+                        <div class="form-group"><label class="form-label">Jam Buka</label><input type="time" class="form-control" name="jam_mulai" required></div>
+                        <div class="form-group"><label class="form-label">Jam Tutup</label><input type="time" class="form-control" name="jam_selesai" required></div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Tambah Soal:</label>
+                        <button type="button" class="btn btn-primary" onclick="tambahSoal('pg')">+ Pilihan Ganda</button>
+                        <button type="button" class="btn btn-success" onclick="tambahSoal('essay')">+ Essay AI</button>
+                    </div>
+
+                    <div id="wadah-soal"></div>
+                    <button type="submit" class="btn btn-primary btn-block mt-4">Simpan Ujian & Generate Token</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="flex-between mb-4 mt-4">
+            <h3>Daftar Jawaban Masuk</h3>
+        </div>
+
+        {% for siswa in data_siswa %}
+        <div class="card baris-jawaban" data-kelas="{{ siswa.kelas }}">
+            <div class="card-header header-secondary flex-between">
+                <div>{{ siswa.username }} <span class="badge badge-info">{{ siswa.kelas }}</span></div>
+                {% if not siswa.semua_dikoreksi %}
+                    <a href="/koreksi_semua/{{ siswa.token }}/{{ siswa.username }}" class="btn btn-success btn-sm">Koreksi Semua via AI</a>
+                {% else %}
+                    <span class="badge badge-success">Selesai Dikoreksi</span>
+                {% endif %}
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead><tr><th>Soal</th><th>Jawaban Siswa</th><th>Nilai AI</th></tr></thead>
+                    <tbody>
+                        {% for detail in siswa.detail_soal %}
+                        <tr>
+                            <td><strong>Q:</strong> {{ detail[9] }}<br><small style="color: green;">K: {{ detail[10] }}</small></td>
+                            <td>{{ detail[4] }}</td>
+                            <td>
+                                {% if detail[5] == 'Sudah Dikoreksi' %}
+                                    <strong>Skor: {{ detail[7] }}</strong><br><small>{{ detail[8] }}</small>
+                                {% else %}
+                                    <span class="badge badge-secondary">Menunggu AI</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function tambahSoal(tipe) {
+            let wadah = document.getElementById('wadah-soal');
+            let divSoal = document.createElement('div');
+            divSoal.className = 'card soal-item';
+            
+            if(tipe === 'pg') {
+                divSoal.innerHTML = `
+                    <div class="card-body" style="background: #f8f9fa;">
+                        <div class="flex-between mb-4">
+                            <input type="hidden" name="tipe_soal[]" value="pg">
+                            <strong class="judul-soal">Soal PG</strong>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="hapusSoal(this)">Hapus</button>
+                        </div>
+                        <div class="form-group"><textarea class="form-control" name="soal[]" rows="2" placeholder="Pertanyaan" required></textarea></div>
+                        <div class="grid-2">
+                            <input type="text" class="form-control" name="opsi_a[]" placeholder="Opsi A" required>
+                            <input type="text" class="form-control" name="opsi_b[]" placeholder="Opsi B" required>
+                            <input type="text" class="form-control" name="opsi_c[]" placeholder="Opsi C" required>
+                            <input type="text" class="form-control" name="opsi_d[]" placeholder="Opsi D" required>
+                        </div>
+                        <div class="form-group mt-4"><input type="text" class="form-control" name="kunci[]" maxlength="1" placeholder="Kunci (A/B/C/D)" required></div>
+                    </div>`;
+            } else {
+                divSoal.innerHTML = `
+                    <div class="card-body" style="background: #eef9f0;">
+                        <div class="flex-between mb-4">
+                            <input type="hidden" name="tipe_soal[]" value="essay">
+                            <input type="hidden" name="opsi_a[]" value=""><input type="hidden" name="opsi_b[]" value=""><input type="hidden" name="opsi_c[]" value=""><input type="hidden" name="opsi_d[]" value="">
+                            <strong class="judul-soal text-success">Soal ESSAY AI</strong>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="hapusSoal(this)">Hapus</button>
+                        </div>
+                        <div class="form-group"><textarea class="form-control" name="soal[]" rows="2" placeholder="Pertanyaan" required></textarea></div>
+                        <div class="form-group"><textarea class="form-control" name="kunci[]" rows="2" placeholder="Patokan Kunci Guru" required></textarea></div>
+                    </div>`;
+            }
+            wadah.appendChild(divSoal);
+            updateNomorSoal();
+        }
+        function hapusSoal(btn) { btn.closest('.card').remove(); updateNomorSoal(); }
+        function updateNomorSoal() {
+            document.querySelectorAll('.soal-item').forEach((soal, index) => {
+                let judul = soal.querySelector('.judul-soal');
+                let tipe = judul.innerText.includes('PG') ? 'PG' : 'ESSAY AI';
+                judul.innerText = `Soal ${index + 1} - ${tipe}`;
+            });
+        }
+        function validasiForm() {
+            if (document.getElementById('wadah-soal').children.length === 0) {
+                alert("Minimal buat 1 soal bro!"); return false;
+            } return true;
+        }
+    </script>
+</body>
+</html>
